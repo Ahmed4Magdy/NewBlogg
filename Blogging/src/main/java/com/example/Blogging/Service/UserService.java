@@ -4,8 +4,10 @@ import com.example.Blogging.Dto.PostDto;
 import com.example.Blogging.Dto.UserDto;
 import com.example.Blogging.Entity.Post;
 import com.example.Blogging.Entity.User;
+import com.example.Blogging.Mapper.UserMapper;
 import com.example.Blogging.Repository.UserRepository;
 import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -18,22 +20,20 @@ import java.util.Optional;
 
 @Service
 @Validated
+@RequiredArgsConstructor
 public class UserService {
 
-    @Autowired
-    private UserRepository userRepository;
+    private final UserRepository userRepository;
+    private final UserMapper userMapper;
 
 
     public ResponseEntity<?> findByid(Long id) {
 
         User userexit = userRepository.findById(id).orElseThrow();
 
-        UserDto dto = new UserDto();
-        dto.setFullname(userexit.getFullname());
-        dto.setEmail(userexit.getEmail());
-        return ResponseEntity.ok(dto);
+        UserDto dto = userMapper.maptodto(userexit);
 
-//        return userRepository.findById(id).orElseThrow();
+        return ResponseEntity.ok(dto);
     }
 
 
@@ -42,24 +42,26 @@ public class UserService {
     }
 
 
-    public User update(User user) {
+    public ResponseEntity<?> update(UserDto userDto) {
 
+       User user =userMapper.maptoentity(userDto);
 
-        User existuser = userRepository.findById(user.getId()).
-                orElseThrow(() -> new RuntimeException("User not found"));
+       User saveuser =userRepository.save(user);
 
+       UserDto userDto1 =userMapper.maptodto(saveuser);
+       return ResponseEntity.ok(userDto1);
 
-        existuser.setFullname(user.getFullname());
-        existuser.setEmail(user.getEmail());
-        existuser.setPassword(user.getPassword());
-        return userRepository.save(existuser);
 
     }
 
 
-    public Optional<User> findByEmail(@Valid String email) {
+    public ResponseEntity<?> findByEmail(@Valid String email) {
 
-        return userRepository.findByEmail(email);
+        User user= userRepository.findByEmail(email).orElseThrow();
+
+        UserDto dto =userMapper.maptodto(user);
+
+        return ResponseEntity.ok(dto);
 
     }
 
@@ -76,26 +78,16 @@ public class UserService {
 //    }
 
 
-
-    //Convert dto for entity and save entity and from entity for dto   as Manual 
+    //Convert dto for entity and save entity and from entity for dto   as Manual
 
     public ResponseEntity<?> createUser(UserDto dto) {
 
-        // 1. Convert DTO → Entity
-        User user = new User();
-        user.setFullname(dto.getFullname());
-        user.setEmail(dto.getEmail());
+        User user =userMapper.maptoentity(dto);
+        User user1 =userRepository.save(user);
 
-        // 2. Save entity to database ✅
-        User savedUser = userRepository.save(user);
+        UserDto userDto = userMapper.maptodto(user1);
+        return ResponseEntity.ok(userDto);
 
-        // 3. Convert back to DTO if you want to return data (Optional)
-        UserDto responseDto = new UserDto();
-        responseDto.setFullname(savedUser.getFullname());
-        responseDto.setEmail(savedUser.getEmail());
-
-        // 4. Return response
-        return ResponseEntity.ok(responseDto);
     }
 
 

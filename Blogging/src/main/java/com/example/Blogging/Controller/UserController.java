@@ -32,15 +32,15 @@ public class UserController {
     }
 
     @PutMapping
-    public User update(@RequestBody User user) {
-        return userService.update(user);
+    public ResponseEntity<?> update(@RequestBody UserDto userdto) {
+        return ResponseEntity.ok(userService.update(userdto));
     }
 
 
     @GetMapping("/email")
-    public Optional<User> findByEmail(@RequestParam String email) {
+    public ResponseEntity<?> findByEmail(@RequestParam String email) {
 
-        return userService.findByEmail(email);
+        return ResponseEntity.ok(userService.findByEmail(email));
 
     }
 

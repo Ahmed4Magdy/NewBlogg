@@ -18,7 +18,7 @@ public class User {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private long id;
+    private Long id;
     @Size(min = 2, max = 50, message = "fullname min 2 and max is 50 character")
     private String fullname;
     @Email(message = "Invalid email format")
