@@ -18,5 +18,6 @@ public interface UserRepository extends JpaRepository<User, Long> {
     @Query("SELECT u FROM User u ")
     List<User> findAllUsers();
 
+    void deleteByIdBetween(Long startId, Long endId);
 
 }

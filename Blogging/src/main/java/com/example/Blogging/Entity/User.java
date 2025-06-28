@@ -2,6 +2,7 @@ package com.example.Blogging.Entity;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -20,7 +21,10 @@ public class User {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     @Size(min = 2, max = 50, message = "fullname min 2 and max is 50 character")
+    @NotBlank(message = "Full name is required")
     private String fullname;
+
+    @NotBlank(message = "Full email is required")
     @Email(message = "Invalid email format")
     @Column(unique = true)
     private String email;
@@ -29,5 +33,5 @@ public class User {
     private String password;
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    List<Post> posts;
+   private List<Post> posts;
 }

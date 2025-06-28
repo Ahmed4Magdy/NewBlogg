@@ -1,16 +1,19 @@
 package com.example.Blogging.Service;
 
+import com.example.Blogging.Dto.LoginRequest;
 import com.example.Blogging.Dto.PostDto;
 import com.example.Blogging.Dto.UserDto;
 import com.example.Blogging.Entity.Post;
 import com.example.Blogging.Entity.User;
 import com.example.Blogging.Mapper.UserMapper;
 import com.example.Blogging.Repository.UserRepository;
+import com.example.Blogging.Response.UserResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -25,6 +28,49 @@ public class UserService {
 
     private final UserRepository userRepository;
     private final UserMapper userMapper;
+
+
+
+
+    public UserResponse Reigester (UserDto request) {
+
+        if (userRepository.findByEmail(request.getEmail()).isPresent()) {
+            throw new RuntimeException("Email already exit");
+        }
+
+            User user = new User();
+            user.setFullname(request.getFullname());
+            user.setEmail(request.getEmail());
+            user.setPassword(request.getPassword());
+            User saved = userRepository.save(user);
+            return mapToResponse(saved);
+
+
+    }
+
+
+
+    public UserResponse Login (LoginRequest request){
+
+        User user =userRepository.findByEmail(request.getEmail()).
+                orElseThrow(()-> new RuntimeException("Invalid email"));
+
+        if(!request.getPassword().equals(user.getPassword())){
+            throw new RuntimeException("Invalid  password");
+        }
+
+        return mapToResponse(user);
+
+    }
+
+
+    public UserResponse mapToResponse(User user) {
+        UserResponse response = new UserResponse();
+
+        response.setFullname(user.getFullname());
+        response.setEmail(user.getEmail());
+        return response;
+    }
 
 
     public ResponseEntity<?> findByid(Long id) {
@@ -55,6 +101,9 @@ public class UserService {
     }
 
 
+
+
+
     public ResponseEntity<?> findByEmail(@Valid String email) {
 
         User user= userRepository.findByEmail(email).orElseThrow();
@@ -78,13 +127,14 @@ public class UserService {
 //    }
 
 
-    //Convert dto for entity and save entity and from entity for dto   as Manual
 
     public ResponseEntity<?> createUser(UserDto dto) {
-
         User user =userMapper.maptoentity(dto);
-        User user1 =userRepository.save(user);
 
+        for (Post post : user.getPosts()) {      //user.getposts() means get all posts that special with user
+            post.setUser(user);                  //link all posts with link...put user for each post
+        }
+        User user1 =userRepository.save(user);
         UserDto userDto = userMapper.maptodto(user1);
         return ResponseEntity.ok(userDto);
 
@@ -96,5 +146,9 @@ public class UserService {
         userRepository.deleteById(id);
     }
 
+    @Transactional
+    public void deleteByIdBetween(Long startId, Long endId){
+        userRepository.deleteByIdBetween(startId,endId);
+    }
 
 }
